@@ -22,21 +22,21 @@ exports.updateUser = (req, res, next) => {
     }
 
     try {
-      const { userId, name, socialMediaHandle } = req.body
+      const userId = req.user?._id
+      const { name, socialMediaHandle } = req.body
 
       if (!userId) {
         throw new CustomError('User ID is required', 400)
       }
 
-      const imageFiles = req.files
-      if (!imageFiles || imageFiles.length === 0) {
-        throw new CustomError('No images uploaded', 400)
-      }
-
       const uploadedImages = []
-      for (const file of imageFiles) {
-        const imageData = await uploadToS3(file)
-        uploadedImages.push(imageData)
+      const imageFiles = req.files
+
+      if (imageFiles && imageFiles.length > 0) {
+        for (const file of imageFiles) {
+          const imageData = await uploadToS3(file)
+          uploadedImages.push(imageData)
+        }
       }
 
       const updatedUser = await updateUserWithImages(
